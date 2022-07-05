@@ -2,13 +2,52 @@ package api
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/13x-tech/ion-api-go/pkg/challange"
 )
+
+func ParseLongForm(uri string) (SuffixData, Delta, error) {
+	splitURI := strings.Split(uri, ":")
+	if len(splitURI) < 2 {
+		return SuffixData{}, Delta{}, fmt.Errorf("invalid long form uri: %s", uri)
+	}
+
+	splitLength := len(splitURI)
+
+	didSuffix := splitURI[splitLength-2]
+	longFormData := splitURI[splitLength-1]
+
+	longFormDataBytes, err := base64.RawURLEncoding.DecodeString(longFormData)
+	if err != nil {
+		return SuffixData{}, Delta{}, fmt.Errorf("failed to base64 decode suffix data: %w", err)
+	}
+
+	var longFormDataStruct struct {
+		SuffixData SuffixData `json:"suffixData"`
+		Delta      Delta      `json:"delta"`
+	}
+
+	if err := json.Unmarshal(longFormDataBytes, &longFormDataStruct); err != nil {
+		return SuffixData{}, Delta{}, fmt.Errorf("failed to unmarshal suffix data: %w", err)
+	}
+
+	testSuffix, err := longFormDataStruct.SuffixData.URI()
+	if err != nil {
+		return SuffixData{}, Delta{}, fmt.Errorf("failed to create suffix uri: %w", err)
+	}
+
+	if testSuffix != didSuffix {
+		return SuffixData{}, Delta{}, fmt.Errorf("suffix uri does not match: %s != %s", testSuffix, didSuffix)
+	}
+
+	return longFormDataStruct.SuffixData, longFormDataStruct.Delta, nil
+}
 
 type API struct {
 	endpoint  string
