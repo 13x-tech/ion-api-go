@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/13x-tech/ion-api-go/pkg/challange"
+	challenge "github.com/13x-tech/ion-api-go/pkg/challenge"
 )
 
 func ParseLongForm(uri string) (SuffixData, Delta, error) {
@@ -51,7 +51,7 @@ func ParseLongForm(uri string) (SuffixData, Delta, error) {
 
 type API struct {
 	endpoint  string
-	challange *challange.Challange
+	challenge *challenge.Challenge
 }
 
 type Options func(a *API) error
@@ -63,15 +63,15 @@ func WithEndpoint(endpoint string) Options {
 	}
 }
 
-func WithChallange(endpoint string) Options {
+func WithChallenge(endpoint string) Options {
 	return func(a *API) error {
-		ch, err := challange.New(
-			challange.WithEndpoint(endpoint),
+		ch, err := challenge.New(
+			challenge.WithEndpoint(endpoint),
 		)
 		if err != nil {
-			return fmt.Errorf("challange error: %w", err)
+			return fmt.Errorf("challenge error: %w", err)
 		}
-		a.challange = ch
+		a.challenge = ch
 		return nil
 	}
 }
@@ -125,10 +125,10 @@ func (a *API) Submit(i interface{}) ([]byte, error) {
 
 	req.Header.Add("Content-Type", "application/json")
 
-	if a.challange != nil {
-		nonce, answer, err := a.challange.Get(requestJSON)
+	if a.challenge != nil {
+		nonce, answer, err := a.challenge.Get(requestJSON)
 		if err != nil {
-			return nil, fmt.Errorf("could not fetch challange: %w", err)
+			return nil, fmt.Errorf("could not fetch challenge: %w", err)
 		}
 		req.Header.Add("Challenge-Nonce", nonce)
 		req.Header.Add("Answer-Nonce", answer)

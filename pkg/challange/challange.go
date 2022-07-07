@@ -1,4 +1,4 @@
-package challange
+package challenge
 
 import (
 	"crypto/rand"
@@ -20,20 +20,20 @@ type Response struct {
 	Target   string `json:"largestAllowedHash"`
 }
 
-type Challange struct {
+type Challenge struct {
 	endpoint string
 }
 
-type Options func(*Challange)
+type Options func(*Challenge)
 
 func WithEndpoint(endpoint string) Options {
-	return func(c *Challange) {
+	return func(c *Challenge) {
 		c.endpoint = endpoint
 	}
 }
 
-func New(opts ...Options) (*Challange, error) {
-	c := new(Challange)
+func New(opts ...Options) (*Challenge, error) {
+	c := new(Challenge)
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -45,11 +45,11 @@ func New(opts ...Options) (*Challange, error) {
 	return c, nil
 }
 
-func (c Challange) Get(request []byte) (string, string, error) {
+func (c Challenge) Get(request []byte) (string, string, error) {
 
 	res, err := http.Get(c.endpoint)
 	if err != nil {
-		return "", "", fmt.Errorf("could not get challange: %w", err)
+		return "", "", fmt.Errorf("could not get challenge: %w", err)
 	}
 
 	body, err := io.ReadAll(res.Body)
@@ -67,12 +67,12 @@ func (c Challange) Get(request []byte) (string, string, error) {
 		return "", "", fmt.Errorf("could not decode target: %w", err)
 	}
 
-	challange, err := hex.DecodeString(r.Nonce)
+	challenge, err := hex.DecodeString(r.Nonce)
 	if err != nil {
 		return "", "", fmt.Errorf("could not decode nonce: %w", err)
 	}
 
-	answer, err := genHash(request, challange, t, r.Duration)
+	answer, err := genHash(request, challenge, t, r.Duration)
 	if err != nil {
 		return "", "", fmt.Errorf("could not get answer: %w", err)
 	}
@@ -100,7 +100,7 @@ func genRandomHexString() (string, error) {
 	return s, nil
 }
 
-func genHash(request, challange, target []byte, maxDuration int) (string, error) {
+func genHash(request, challenge, target []byte, maxDuration int) (string, error) {
 	start := time.Now()
 
 	for {
@@ -117,7 +117,7 @@ func genHash(request, challange, target []byte, maxDuration int) (string, error)
 		password := []byte(fmt.Sprintf("%s%s", n, request))
 		work := argon2.IDKey(
 			password,
-			challange,
+			challenge,
 			1,
 			1000,
 			1,
