@@ -58,6 +58,6 @@ With Challenge Usage:
 ```go
 	api.New(
 		ion.WithEndpoint("https://{ion-node-url}/operations"),
-    ion.WithChallengeEndpoint("https://{ion-node-url}/proof-of-work-challenge"),
+		ion.WithChallengeEndpoint("https://{ion-node-url}/proof-of-work-challenge"),
 	)
 ```
